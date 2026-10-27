@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard — Smart EPN</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-title">⚡ Smart EPN</div>
+      <div class="sidebar-logo-sub">Student Portal</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a class="sidebar-link active" onclick="showSection('overview',this)"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a class="sidebar-link" onclick="showSection('borrow',this)"><span class="nav-icon">🔧</span> Borrow Tools</a>
+      <a class="sidebar-link" onclick="showSection('transactions',this)"><span class="nav-icon">📋</span> My Transactions</a>
+      <a class="sidebar-section-label"></a>
+      <a class="sidebar-link" onclick="showSection('profile',this)"><span class="nav-icon">👤</span> My Profile</a>
+    </nav>
+    <div class="sidebar-footer">Politeknik Kuching Sarawak &copy; 2026</div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <div class="main-wrapper">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <span class="page-title" id="page-title">Dashboard Overview</span>
+      </div>
+      <div class="header-right">
+        <button class="header-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+        <button class="header-btn" onclick="toggleLang()" id="lang-btn">🌐 BM</button>
+        <div class="user-chip">
+          <div class="user-avatar" id="user-avatar">S</div>
+          <div>
+            <div class="user-name" id="user-name">Student</div>
+            <div class="user-role">Student</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      <!-- OVERVIEW -->
+      <div id="section-overview" class="dashboard-section">
+        <div id="overdue-banner" class="alert-banner alert-danger" style="display:none">
+          ⚠️ <strong>You have overdue items!</strong> Please return them as soon as possible or contact your lecturer.
+        </div>
+        <div class="cards-grid" id="stu-cards"></div>
+
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">📋 My Recent Transactions</span></div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table><thead><tr><th>Txn ID</th><th>Tool</th><th>Qty</th><th>Borrow Date</th><th>Exp. Return</th><th>Status</th></tr></thead>
+              <tbody id="stu-recent-tbody"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BORROW REQUEST -->
+      <div id="section-borrow" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">🔧 Submit Tool Borrow Request</span></div>
+          <div class="section-body">
+            <div id="borrow-msg" class="global-msg" style="display:none"></div>
+            <div id="overdue-block" class="alert-banner alert-danger" style="display:none">
+              ⚠️ You cannot submit new borrow requests while you have overdue items. Please return them first.
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tool</label>
+                <select id="s-tool"></select>
+              </div>
+              <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" id="s-qty" min="1" value="1" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Workshop Session Date (DD/MM/YYYY)</label>
+                <input type="text" id="s-date" placeholder="e.g. 27/03/2026" />
+              </div>
+              <div class="form-group">
+                <label>Expected Return Date (DD/MM/YYYY)</label>
+                <input type="text" id="s-retdate" placeholder="e.g. 27/03/2026" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Borrow Time (HH:MM)</label>
+                <input type="text" id="s-time" placeholder="e.g. 08:00" />
+              </div>
+              <div class="form-group">
+                <label>Expected Return Time (HH:MM)</label>
+                <input type="text" id="s-rettime" placeholder="e.g. 13:00" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Lecturer</label>
+              <select id="s-lecturer"></select>
+            </div>
+            <div class="form-group">
+              <label>Remarks</label>
+              <textarea id="s-remarks" rows="2" placeholder="Optional remarks…"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="submitBorrowReq()" id="borrow-submit-btn">Submit Request</button>
+          </div>
+        </div>
+
+        <!-- Available tools reference -->
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">🗃️ Available Tools</span></div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table><thead><tr><th>Asset ID</th><th>Tool Name</th><th>Category</th><th>Available Qty</th><th>Condition</th></tr></thead>
+              <tbody id="stu-avail-tools"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY TRANSACTIONS -->
+      <div id="section-transactions" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">📋 My All Transactions</span>
+            <div class="section-actions">
+              <div class="search-bar"><span>🔍</span><input type="text" id="stu-txn-search" placeholder="Search tool…" oninput="filterStuTxns()" /></div>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="stu-txn-table">
+                <thead><tr>
+                  <th>Txn ID</th><th>Tool</th><th>Qty</th><th>Borrow Date</th>
+                  <th>Exp. Return</th><th>Actual Return</th><th>Condition Before</th><th>Status</th><th>Remarks</th>
+                </tr></thead>
+                <tbody id="stu-txn-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div id="section-profile" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">👤 My Profile</span></div>
+          <div class="section-body">
+            <div id="profile-info"></div>
+            <hr style="margin:1.25rem 0;border:none;border-top:1px solid var(--border)" />
+            <h4 style="font-size:0.9rem;margin-bottom:0.75rem;color:var(--text)">Change Password</h4>
+            <div id="pwd-msg" class="global-msg" style="display:none"></div>
+            <div class="form-group" style="max-width:360px">
+              <label>Current Password</label>
+              <input type="password" id="pwd-current" />
+            </div>
+            <div class="form-group" style="max-width:360px">
+              <label>New Password (min 8 characters)</label>
+              <input type="password" id="pwd-new" />
+            </div>
+            <div class="form-group" style="max-width:360px">
+              <label>Confirm New Password</label>
+              <input type="password" id="pwd-confirm" />
+            </div>
+            <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/dashboard-student.js"></script>
+</body>
+</html>

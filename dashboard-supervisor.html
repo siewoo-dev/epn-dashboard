@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supervisor Dashboard — Smart EPN</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-title">⚡ Smart EPN</div>
+      <div class="sidebar-logo-sub">Workshop Management Dashboard</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a href="#section-overview"  class="sidebar-link active" onclick="showSection('overview',this)"><span class="nav-icon">🏠</span> Dashboard</a>
+
+      <div class="sidebar-section-label">Workshop</div>
+      <a href="#section-tools"     class="sidebar-link" onclick="showSection('tools',this)"><span class="nav-icon">🔧</span> Tool Borrowing</a>
+      <a href="#section-materials" class="sidebar-link" onclick="showSection('materials',this)"><span class="nav-icon">📦</span> Materials</a>
+      <a href="#section-bookings"  class="sidebar-link" onclick="showSection('bookings',this)"><span class="nav-icon">📅</span> Bookings</a>
+      <a href="#section-usage"     class="sidebar-link" onclick="showSection('usage',this)"><span class="nav-icon">📋</span> Workshop Usage</a>
+
+      <div class="sidebar-section-label">Safety</div>
+      <a href="#section-maintenance" class="sidebar-link" onclick="showSection('maintenance',this)"><span class="nav-icon">🔨</span> Maintenance</a>
+      <a href="#section-safety"      class="sidebar-link" onclick="showSection('safety',this)"><span class="nav-icon">🛡️</span> Safety Inspections</a>
+
+      <div class="sidebar-section-label">Admin</div>
+      <a href="#section-reports"  class="sidebar-link" onclick="showSection('reports',this)"><span class="nav-icon">📊</span> Reports</a>
+      <a href="#section-actlog"   class="sidebar-link" onclick="showSection('actlog',this)"><span class="nav-icon">📝</span> Activity Log</a>
+      <a href="#section-users"    class="sidebar-link" onclick="showSection('users',this)"><span class="nav-icon">👥</span> Users</a>
+    </nav>
+    <div class="sidebar-footer">Politeknik Kuching Sarawak &copy; 2026</div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- ── Main Wrapper ── -->
+  <div class="main-wrapper">
+
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="header-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <span class="page-title" id="page-title">Dashboard Overview</span>
+      </div>
+      <div class="header-right">
+        <button class="header-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+        <button class="header-btn" onclick="toggleLang()" id="lang-btn">🌐 BM</button>
+        <button class="notif-btn" onclick="showSection('overview',null)" title="Alerts">
+          🔔 <span class="notif-badge" id="notif-count">0</span>
+        </button>
+        <div class="user-chip">
+          <div class="user-avatar" id="user-avatar">S</div>
+          <div>
+            <div class="user-name" id="user-name">Supervisor</div>
+            <div class="user-role">Workshop Supervisor</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <!-- ── Main Content ── -->
+    <main class="main-content">
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: OVERVIEW
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-overview" class="dashboard-section">
+
+        <!-- Alert Banners -->
+        <div id="alert-overdue" class="alert-banner alert-danger" style="display:none">
+          ⚠️ <span id="alert-overdue-text"></span>
+        </div>
+        <div id="alert-lowstock" class="alert-banner alert-warning" style="display:none">
+          📦 <span id="alert-lowstock-text"></span>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="cards-grid" id="summary-cards"></div>
+
+        <!-- Charts -->
+        <div class="charts-row">
+          <div class="chart-block">
+            <div class="chart-title">📊 Monthly Workshop Utilisation (2026)</div>
+            <div class="chart-canvas-wrap"><canvas id="chart-utilisation" height="90"></canvas></div>
+          </div>
+          <div class="chart-block">
+            <div class="chart-title">🍩 Materials Usage by Category</div>
+            <div class="chart-canvas-wrap"><canvas id="chart-materials" height="160"></canvas></div>
+          </div>
+        </div>
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">📈 Tool Borrowing Trends (2026)</span>
+          </div>
+          <div class="section-body">
+            <canvas id="chart-borrowing" height="60"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: TOOL BORROWING
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-tools" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">🔧 Tool Borrowing Transactions</span>
+            <div class="section-actions">
+              <div class="search-bar"><span>🔍</span><input type="text" id="tool-search" placeholder="Search student or tool…" oninput="filterTools()" /></div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-borrow')">+ New Borrow</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV('tools')">⬇ CSV</button>
+              <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Print</button>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="tools-table">
+                <thead><tr>
+                  <th>Txn ID</th><th>Student</th><th>Tool</th><th>Qty</th>
+                  <th>Borrow Date</th><th>Exp. Return</th><th>Status</th><th>Actions</th>
+                </tr></thead>
+                <tbody id="tools-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tool Inventory -->
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">🗃️ Tool Inventory</span>
+            <div class="section-actions">
+              <div class="search-bar"><span>🔍</span><input type="text" id="inv-search" placeholder="Search tool…" oninput="filterInventory()" /></div>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="inv-table">
+                <thead><tr>
+                  <th>Asset ID</th><th>Tool Name</th><th>Category</th><th>Total Qty</th><th>Available</th><th>Condition</th><th>Location</th>
+                </tr></thead>
+                <tbody id="inv-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: MATERIALS
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-materials" class="dashboard-section" style="display:none">
+        <div id="lowstock-banner" class="alert-banner alert-warning" style="display:none">
+          📦 <span id="lowstock-text"></span>
+        </div>
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">📦 Consumable Materials Stock</span>
+            <div class="section-actions">
+              <div class="search-bar"><span>🔍</span><input type="text" id="mat-search" placeholder="Search material…" oninput="filterMaterials()" /></div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-issue')">Issue Material</button>
+              <button class="btn btn-success btn-sm" onclick="openModal('modal-addstock')">+ Add Stock</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV('materials')">⬇ CSV</button>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="mat-table">
+                <thead><tr>
+                  <th>ID</th><th>Material Name</th><th>Category</th><th>Unit</th>
+                  <th>Current Stock</th><th>Min Level</th><th>Status</th>
+                </tr></thead>
+                <tbody id="mat-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">📋 Material Transaction History</span></div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="mattxn-table">
+                <thead><tr>
+                  <th>ID</th><th>Material</th><th>Type</th><th>Qty</th><th>Student / Class</th><th>Lecturer</th><th>Date</th><th>Remarks</th>
+                </tr></thead>
+                <tbody id="mattxn-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: BOOKINGS
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-bookings" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">📅 Workshop Bookings</span>
+            <div class="section-actions">
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV('bookings')">⬇ CSV</button>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="booking-table">
+                <thead><tr>
+                  <th>ID</th><th>Lecturer</th><th>Date</th><th>Time</th><th>Course</th><th>Class</th><th>Purpose</th><th>Status</th>
+                </tr></thead>
+                <tbody id="booking-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: USAGE RECORDS
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-usage" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">📋 Workshop Usage Records</span>
+            <div class="section-actions">
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV('usage')">⬇ CSV</button>
+              <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨 Print</button>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="usage-table">
+                <thead><tr>
+                  <th>ID</th><th>Lecturer</th><th>Date</th><th>Duration</th><th>Course</th><th>Class</th><th>Students</th><th>Safety Briefing</th><th>Condition After</th>
+                </tr></thead>
+                <tbody id="usage-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: MAINTENANCE
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-maintenance" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">🔨 Maintenance Records</span>
+            <div class="section-actions">
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-maint')">+ New Record</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV('maintenance')">⬇ CSV</button>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="maint-table">
+                <thead><tr>
+                  <th>ID</th><th>Asset</th><th>Issue</th><th>Reported By</th><th>Report Date</th><th>Due Date</th><th>Assigned To</th><th>Status</th>
+                </tr></thead>
+                <tbody id="maint-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: SAFETY
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-safety" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">🛡️ Safety Inspection Records</span>
+            <div class="section-actions">
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-safety')">+ New Inspection</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV('safety')">⬇ CSV</button>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="safety-table">
+                <thead><tr>
+                  <th>ID</th><th>Inspector</th><th>Date</th><th>Electrical</th><th>Emergency</th><th>PPE</th><th>Defects</th><th>Overall Status</th>
+                </tr></thead>
+                <tbody id="safety-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: REPORTS
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-reports" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">📊 Reports &amp; Export</span></div>
+          <div class="section-body">
+            <p style="color:var(--muted);margin-bottom:1rem;">Generate and export data reports. Use the CSV buttons in each section, or export all data below.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+              <button class="btn btn-secondary" onclick="exportCSV('tools')">⬇ Tool Transactions CSV</button>
+              <button class="btn btn-secondary" onclick="exportCSV('materials')">⬇ Materials Stock CSV</button>
+              <button class="btn btn-secondary" onclick="exportCSV('bookings')">⬇ Bookings CSV</button>
+              <button class="btn btn-secondary" onclick="exportCSV('usage')">⬇ Usage Records CSV</button>
+              <button class="btn btn-secondary" onclick="exportCSV('maintenance')">⬇ Maintenance CSV</button>
+              <button class="btn btn-secondary" onclick="exportCSV('safety')">⬇ Safety Inspections CSV</button>
+              <button class="btn btn-secondary" onclick="window.print()">🖨 Print Current View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: ACTIVITY LOG
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-actlog" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">📝 Activity Log</span>
+            <div class="section-actions">
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV('actlog')">⬇ CSV</button>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="actlog-table">
+                <thead><tr><th>ID</th><th>User</th><th>Role</th><th>Action</th><th>Details</th><th>Timestamp</th></tr></thead>
+                <tbody id="actlog-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════════════════
+           SECTION: USERS
+      ════════════════════════════════════════════════════════ -->
+      <div id="section-users" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">👥 Registered Users</span></div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table id="users-table">
+                <thead><tr><th>ID</th><th>Name</th><th>Staff/Student ID</th><th>Email</th><th>Role</th><th>Registered</th></tr></thead>
+                <tbody id="users-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════════ -->
+
+<!-- New Borrow Modal -->
+<div class="modal-overlay" id="modal-borrow">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🔧 New Tool Borrow Request</span>
+      <button class="modal-close" onclick="closeModal('modal-borrow')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="borrow-msg" class="global-msg" style="display:none"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Student Name</label>
+          <input type="text" id="b-student" placeholder="Full name" />
+        </div>
+        <div class="form-group">
+          <label>Registration No.</label>
+          <input type="text" id="b-regno" placeholder="e.g. 23DET-001" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Class</label>
+          <input type="text" id="b-class" placeholder="e.g. DET2A" />
+        </div>
+        <div class="form-group">
+          <label>Course Code</label>
+          <input type="text" id="b-course" placeholder="e.g. DET20013" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tool</label>
+          <select id="b-tool"></select>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="b-qty" min="1" value="1" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Borrow Date (DD/MM/YYYY)</label>
+          <input type="text" id="b-date" placeholder="e.g. 27/03/2026" />
+        </div>
+        <div class="form-group">
+          <label>Expected Return Date</label>
+          <input type="text" id="b-retdate" placeholder="e.g. 27/03/2026" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Borrow Time</label>
+          <input type="text" id="b-time" placeholder="HH:MM" />
+        </div>
+        <div class="form-group">
+          <label>Expected Return Time</label>
+          <input type="text" id="b-rettime" placeholder="HH:MM" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Condition Before Borrowing</label>
+        <select id="b-condition">
+          <option value="Good">Good</option>
+          <option value="Fair">Fair</option>
+          <option value="Poor">Poor</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Remarks</label>
+        <textarea id="b-remarks" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-borrow')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitBorrow()">Submit Borrow</button>
+    </div>
+  </div>
+</div>
+
+<!-- Issue Material Modal -->
+<div class="modal-overlay" id="modal-issue">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📦 Issue Consumable Material</span>
+      <button class="modal-close" onclick="closeModal('modal-issue')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="issue-msg" class="global-msg" style="display:none"></div>
+      <div class="form-group">
+        <label>Material</label>
+        <select id="i-material"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quantity to Issue</label>
+          <input type="number" id="i-qty" min="1" value="1" />
+        </div>
+        <div class="form-group">
+          <label>Date (DD/MM/YYYY)</label>
+          <input type="text" id="i-date" placeholder="e.g. 27/03/2026" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Student Name</label>
+          <input type="text" id="i-student" placeholder="Full name" />
+        </div>
+        <div class="form-group">
+          <label>Class</label>
+          <input type="text" id="i-class" placeholder="e.g. DET2A" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Practical Session / Remarks</label>
+        <input type="text" id="i-remarks" placeholder="e.g. Practical 5" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-issue')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitIssue()">Issue Material</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Stock Modal -->
+<div class="modal-overlay" id="modal-addstock">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">➕ Add Stock Receipt</span>
+      <button class="modal-close" onclick="closeModal('modal-addstock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="addstock-msg" class="global-msg" style="display:none"></div>
+      <div class="form-group">
+        <label>Material</label>
+        <select id="as-material"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quantity Received</label>
+          <input type="number" id="as-qty" min="1" value="1" />
+        </div>
+        <div class="form-group">
+          <label>Date (DD/MM/YYYY)</label>
+          <input type="text" id="as-date" placeholder="e.g. 27/03/2026" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Remarks / Supplier</label>
+        <input type="text" id="as-remarks" placeholder="e.g. Received from XYZ Supplier" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-addstock')">Cancel</button>
+      <button class="btn btn-success" onclick="submitAddStock()">Add Stock</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Maintenance Modal -->
+<div class="modal-overlay" id="modal-maint">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🔨 New Maintenance Record</span>
+      <button class="modal-close" onclick="closeModal('modal-maint')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Asset / Tool Name</label>
+        <input type="text" id="m-asset" placeholder="e.g. Power Drill EPN-DL-001" />
+      </div>
+      <div class="form-group">
+        <label>Issue Description</label>
+        <textarea id="m-issue" rows="2" placeholder="Describe the issue or maintenance needed"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Report Date (DD/MM/YYYY)</label>
+          <input type="text" id="m-date" placeholder="e.g. 27/03/2026" />
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="text" id="m-due" placeholder="e.g. 03/04/2026" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Assigned To</label>
+        <input type="text" id="m-assign" placeholder="e.g. Workshop Technician" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-maint')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitMaint()">Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Safety Inspection Modal -->
+<div class="modal-overlay" id="modal-safety">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🛡️ New Safety Inspection</span>
+      <button class="modal-close" onclick="closeModal('modal-safety')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Inspection Date (DD/MM/YYYY)</label>
+          <input type="text" id="si-date" placeholder="e.g. 27/03/2026" />
+        </div>
+        <div class="form-group">
+          <label>Overall Status</label>
+          <select id="si-status">
+            <option value="Safe">Safe</option>
+            <option value="Attention Required">Attention Required</option>
+            <option value="Repair Required">Repair Required</option>
+            <option value="Inspection Due">Inspection Due</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Electrical Equipment</label>
+          <select id="si-elec">
+            <option value="Good">Good</option>
+            <option value="Attention Required">Attention Required</option>
+            <option value="Repair Required">Repair Required</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Emergency Equipment</label>
+          <select id="si-emergency">
+            <option value="Good">Good</option>
+            <option value="Attention Required">Attention Required</option>
+            <option value="Repair Required">Repair Required</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>PPE Availability</label>
+        <select id="si-ppe">
+          <option value="Good">Good</option>
+          <option value="Attention Required">Attention Required</option>
+          <option value="Insufficient">Insufficient</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Defects / Hazards Found</label>
+        <textarea id="si-defects" rows="2" placeholder="List any defects or hazards, or write 'None'"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Corrective Actions</label>
+        <textarea id="si-actions" rows="2" placeholder="Actions taken or planned"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Remarks</label>
+        <input type="text" id="si-remarks" placeholder="Additional notes" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-safety')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitSafety()">Save Inspection</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/data.js"></script>
+<script src="js/dashboard-supervisor.js"></script>
+</body>
+</html>

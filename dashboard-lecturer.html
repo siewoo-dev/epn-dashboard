@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lecturer Dashboard — Smart EPN</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-title">⚡ Smart EPN</div>
+      <div class="sidebar-logo-sub">Lecturer Portal</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main</div>
+      <a class="sidebar-link active" onclick="showSection('overview',this)"><span class="nav-icon">🏠</span> Dashboard</a>
+
+      <div class="sidebar-section-label">Workshop</div>
+      <a class="sidebar-link" onclick="showSection('record-usage',this)"><span class="nav-icon">📋</span> Record Usage</a>
+      <a class="sidebar-link" onclick="showSection('booking',this)"><span class="nav-icon">📅</span> Workshop Booking</a>
+      <a class="sidebar-link" onclick="showSection('tools',this)"><span class="nav-icon">🔧</span> Tool Transactions</a>
+      <a class="sidebar-link" onclick="showSection('materials',this)"><span class="nav-icon">📦</span> Material Usage</a>
+
+      <div class="sidebar-section-label">Reports</div>
+      <a class="sidebar-link" onclick="showSection('reports',this)"><span class="nav-icon">📊</span> My Reports</a>
+    </nav>
+    <div class="sidebar-footer">Politeknik Kuching Sarawak &copy; 2026</div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <div class="main-wrapper">
+    <header class="top-header">
+      <div class="header-left">
+        <button class="hamburger" onclick="toggleSidebar()">☰</button>
+        <span class="page-title" id="page-title">Dashboard Overview</span>
+      </div>
+      <div class="header-right">
+        <button class="header-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark</button>
+        <button class="header-btn" onclick="toggleLang()" id="lang-btn">🌐 BM</button>
+        <div class="user-chip">
+          <div class="user-avatar" id="user-avatar">L</div>
+          <div>
+            <div class="user-name" id="user-name">Lecturer</div>
+            <div class="user-role">Lecturer</div>
+          </div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      <!-- OVERVIEW -->
+      <div id="section-overview" class="dashboard-section">
+        <div class="cards-grid" id="lec-cards"></div>
+
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">🔧 My Class — Recent Tool Transactions</span></div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table><thead><tr><th>Txn ID</th><th>Student</th><th>Tool</th><th>Borrow Date</th><th>Status</th></tr></thead>
+              <tbody id="lec-recent-tools"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECORD USAGE -->
+      <div id="section-record-usage" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">📋 Record Workshop Usage</span></div>
+          <div class="section-body">
+            <div id="usage-msg" class="global-msg" style="display:none"></div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date (DD/MM/YYYY)</label>
+                <input type="text" id="u-date" placeholder="e.g. 27/03/2026" />
+              </div>
+              <div class="form-group">
+                <label>Start Time (HH:MM)</label>
+                <input type="text" id="u-start" placeholder="e.g. 08:00" oninput="calcDuration()" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>End Time (HH:MM)</label>
+                <input type="text" id="u-end" placeholder="e.g. 13:00" oninput="calcDuration()" />
+              </div>
+              <div class="form-group">
+                <label>Duration (auto)</label>
+                <input type="text" id="u-duration" readonly placeholder="Calculated automatically" style="background:var(--page-bg)" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Course Code</label>
+                <input type="text" id="u-code" placeholder="e.g. DET20013" />
+              </div>
+              <div class="form-group">
+                <label>Course Name</label>
+                <input type="text" id="u-cname" placeholder="e.g. Electrical Wiring Technology" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Class</label>
+                <input type="text" id="u-class" placeholder="e.g. DET2A" />
+              </div>
+              <div class="form-group">
+                <label>Semester</label>
+                <input type="text" id="u-sem" placeholder="e.g. 2" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Practical Activity</label>
+                <input type="text" id="u-activity" placeholder="e.g. Basic Wiring Installation" />
+              </div>
+              <div class="form-group">
+                <label>Number of Students</label>
+                <input type="number" id="u-students" min="1" value="18" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Purpose of Use</label>
+              <input type="text" id="u-purpose" placeholder="e.g. Practical session — wiring exercise" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Workshop Condition Before</label>
+                <select id="u-before">
+                  <option value="Good">Good</option>
+                  <option value="Attention Required">Attention Required</option>
+                  <option value="Repair Required">Repair Required</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Workshop Condition After</label>
+                <select id="u-after">
+                  <option value="Good">Good</option>
+                  <option value="Attention Required">Attention Required</option>
+                  <option value="Repair Required">Repair Required</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="u-safety" style="width:auto;margin-right:0.5rem" />
+                Safety briefing conducted before session
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Remarks / Incidents / Maintenance Issues</label>
+              <textarea id="u-remarks" rows="3" placeholder="Any incidents, damage, or issues to report…"></textarea>
+            </div>
+            <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
+              <button class="btn btn-primary" onclick="submitUsage()">Save Usage Record</button>
+              <button class="btn btn-secondary" onclick="resetUsageForm()">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Past usage records -->
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">📋 My Workshop Usage History</span></div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table><thead><tr><th>ID</th><th>Date</th><th>Duration</th><th>Course</th><th>Class</th><th>Students</th><th>Safety</th><th>Condition After</th></tr></thead>
+              <tbody id="lec-usage-hist"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKING -->
+      <div id="section-booking" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">📅 New Workshop Booking</span></div>
+          <div class="section-body">
+            <div id="booking-msg" class="global-msg" style="display:none"></div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Date (DD/MM/YYYY)</label>
+                <input type="text" id="bk-date" placeholder="e.g. 27/03/2026" />
+              </div>
+              <div class="form-group">
+                <label>Start Time (HH:MM)</label>
+                <input type="text" id="bk-start" placeholder="e.g. 08:00" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>End Time (HH:MM)</label>
+                <input type="text" id="bk-end" placeholder="e.g. 13:00" />
+              </div>
+              <div class="form-group">
+                <label>Course Code</label>
+                <input type="text" id="bk-code" placeholder="e.g. DET20013" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Course Name</label>
+                <input type="text" id="bk-cname" placeholder="e.g. Electrical Wiring Technology" />
+              </div>
+              <div class="form-group">
+                <label>Class</label>
+                <input type="text" id="bk-class" placeholder="e.g. DET2A" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Purpose of Use</label>
+              <input type="text" id="bk-purpose" placeholder="e.g. Practical 5 — Distribution Board" />
+            </div>
+            <div id="clash-alert" class="alert-banner alert-danger" style="display:none">
+              ⚠️ <span id="clash-msg"></span>
+            </div>
+            <div style="display:flex;gap:0.75rem;margin-top:0.5rem">
+              <button class="btn btn-secondary" onclick="checkClash()">Check Availability</button>
+              <button class="btn btn-primary" onclick="submitBooking()">Submit Booking</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Existing bookings -->
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">📅 All Bookings</span></div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table><thead><tr><th>ID</th><th>Lecturer</th><th>Date</th><th>Time</th><th>Course</th><th>Class</th><th>Status</th></tr></thead>
+              <tbody id="lec-bookings"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOOL TRANSACTIONS -->
+      <div id="section-tools" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">🔧 Tool Transactions — My Class</span>
+            <div class="section-actions">
+              <button class="btn btn-primary btn-sm" onclick="openBorrowModal()">+ New Borrow</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportLecCSV('tools')">⬇ CSV</button>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table><thead><tr><th>Txn ID</th><th>Student</th><th>Tool</th><th>Qty</th><th>Borrow Date</th><th>Exp. Return</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="lec-tools-tbody"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATERIALS -->
+      <div id="section-materials" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header">
+            <span class="section-title">📦 Material Usage — My Class</span>
+            <div class="section-actions">
+              <button class="btn btn-primary btn-sm" onclick="openModal('modal-lec-issue')">Issue Material</button>
+              <button class="btn btn-secondary btn-sm" onclick="exportLecCSV('materials')">⬇ CSV</button>
+            </div>
+          </div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table><thead><tr><th>ID</th><th>Material</th><th>Type</th><th>Qty</th><th>Student</th><th>Date</th><th>Remarks</th></tr></thead>
+              <tbody id="lec-mat-tbody"></tbody></table>
+            </div>
+          </div>
+        </div>
+        <!-- Current stock (view only) -->
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">📦 Current Material Stock (View Only)</span></div>
+          <div class="section-body" style="padding:0">
+            <div class="table-wrap">
+              <table><thead><tr><th>Material</th><th>Category</th><th>Unit</th><th>Current Stock</th><th>Min Level</th><th>Status</th></tr></thead>
+              <tbody id="lec-stock-tbody"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="section-reports" class="dashboard-section" style="display:none">
+        <div class="section-block">
+          <div class="section-header"><span class="section-title">📊 My Reports</span></div>
+          <div class="section-body">
+            <p style="color:var(--muted);margin-bottom:1rem">Export your workshop data.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.75rem">
+              <button class="btn btn-secondary" onclick="exportLecCSV('tools')">⬇ Tool Transactions CSV</button>
+              <button class="btn btn-secondary" onclick="exportLecCSV('materials')">⬇ Material Usage CSV</button>
+              <button class="btn btn-secondary" onclick="exportLecCSV('bookings')">⬇ My Bookings CSV</button>
+              <button class="btn btn-secondary" onclick="exportLecCSV('usage')">⬇ Usage Records CSV</button>
+              <button class="btn btn-secondary" onclick="window.print()">🖨 Print</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ── Modals ── -->
+
+<!-- Issue Material Modal -->
+<div class="modal-overlay" id="modal-lec-issue">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📦 Issue Material</span>
+      <button class="modal-close" onclick="closeModal('modal-lec-issue')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Material</label><select id="li-material"></select></div>
+      <div class="form-row">
+        <div class="form-group"><label>Quantity</label><input type="number" id="li-qty" min="1" value="1" /></div>
+        <div class="form-group"><label>Date (DD/MM/YYYY)</label><input type="text" id="li-date" placeholder="e.g. 27/03/2026" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Student Name</label><input type="text" id="li-student" placeholder="Full name" /></div>
+        <div class="form-group"><label>Class</label><input type="text" id="li-class" placeholder="e.g. DET2A" /></div>
+      </div>
+      <div class="form-group"><label>Remarks / Practical Session</label><input type="text" id="li-remarks" placeholder="e.g. Practical 5" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-lec-issue')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLecIssue()">Issue Material</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Borrow Modal (Lecturer) -->
+<div class="modal-overlay" id="modal-lec-borrow">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🔧 New Tool Borrow</span>
+      <button class="modal-close" onclick="closeModal('modal-lec-borrow')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Student Name</label><input type="text" id="lb-student" placeholder="Full name" /></div>
+        <div class="form-group"><label>Registration No.</label><input type="text" id="lb-regno" placeholder="e.g. 23DET-001" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Class</label><input type="text" id="lb-class" placeholder="e.g. DET2A" /></div>
+        <div class="form-group"><label>Course Code</label><input type="text" id="lb-course" placeholder="e.g. DET20013" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Tool</label><select id="lb-tool"></select></div>
+        <div class="form-group"><label>Quantity</label><input type="number" id="lb-qty" min="1" value="1" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Borrow Date (DD/MM/YYYY)</label><input type="text" id="lb-date" placeholder="e.g. 27/03/2026" /></div>
+        <div class="form-group"><label>Expected Return Date</label><input type="text" id="lb-retdate" placeholder="e.g. 27/03/2026" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Borrow Time</label><input type="text" id="lb-time" placeholder="HH:MM" /></div>
+        <div class="form-group"><label>Expected Return Time</label><input type="text" id="lb-rettime" placeholder="HH:MM" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-lec-borrow')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLecBorrow()">Record Borrow</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/data.js"></script>
+<script src="js/dashboard-lecturer.js"></script>
+</body>
+</html>
